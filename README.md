@@ -1,18 +1,16 @@
 # nixpkgs-prs Bot
 
-## Overview
-
 `nixpkgs-prs` is a bot that fetches pull request information from the
 [nixpkgs](https://github.com/NixOS/nixpkgs) repository. It supports optional
-posting to [Bluesky (bsky)](https://bsky.app) and [Fediverse (fedi)](https://fediverse.to) platforms, which are gated behind feature flags.
+posting to [Bluesky](https://bsky.app) and [Fediverse](https://fediverse.to) platforms, which are gated behind feature flags.
 
-## Features
+## :sparkles: Features
 
 - **Fetch PR Data**: Retrieves pull request information from the nixpkgs repository.
 - **Post to Bluesky** (*Requires `post-bsky` feature*): Publishes updates to Bluesky.
 - **Post to Fediverse** (*Requires `post-fedi` feature*): Publishes updates to Fediverse.
 
-## Configuration
+## :gear: Configuration
 
 If you are running in a container or systemd service you may consider setting
 the following environment variables, otherwise they are accessible as flags:
@@ -26,7 +24,7 @@ the following environment variables, otherwise they are accessible as flags:
 
 ## License
 
-This project is licensed under the EUPL-1.2 License.
+This project is licensed under the [EUPL-1.2 License](https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12).
 
 ## Contributing
 
