@@ -3,15 +3,9 @@
   rustPlatform,
   openssl,
   pkg-config,
-  makeBinaryWrapper,
-  toot,
 }:
 let
   toml = (lib.importTOML ../Cargo.toml).workspace.package;
-
-  rtp = lib.makeBinPath [
-    toot
-  ];
 in
 rustPlatform.buildRustPackage {
   pname = "nixpkgs-prs";
@@ -37,17 +31,11 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [
     pkg-config
-    makeBinaryWrapper
   ];
 
   buildInputs = [
     openssl
   ];
-
-  postFixup = ''
-    wrapProgram $out/bin/nixpkgs-prs \
-      --prefix PATH : ${rtp}
-  '';
 
   meta = {
     inherit (toml) homepage description;

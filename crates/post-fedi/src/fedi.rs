@@ -1,51 +1,66 @@
 use chrono::Utc;
 use fetch_prs::{fetch_prs, FetchArgs, OutputFormat};
-use std::process::Command;
+use megalodon::{
+    entities::status::StatusVisibility,
+    generator,
+    megalodon::{AppInputOptions, PostStatusInputOptions},
+    SNS,
+};
 
 pub struct FediClient {
-    pub instance: String,
-    pub email: String,
-    pub password: String,
+    client: Box<dyn megalodon::Megalodon + Send + Sync>,
 }
 
 type E = Box<dyn std::error::Error>;
 
 impl FediClient {
-    pub fn new(instance: String, email: String, password: String) -> Self {
-        Self {
-            instance,
-            email,
-            password,
+    pub async fn new(instance: String, client_token: Option<String>) -> Result<Self, E> {
+        if let Some(client_token) = client_token {
+            let client = generator(SNS::Pleroma, instance.clone(), Some(client_token), None)?;
+            return Ok(FediClient { client });
         }
+
+        let client = generator(SNS::Pleroma, instance.clone(), None, None)?;
+
+        let opts = AppInputOptions {
+            scopes: Some(["read".to_string(), "write".to_string()].to_vec()),
+            ..Default::default()
+        };
+
+        let app_data = match client
+            .register_app("nixpkgs-prs-bot".to_string(), &opts)
+            .await
+        {
+            Ok(data) => data,
+            Err(e) => return Err(Box::new(e)),
+        };
+
+        let code = {
+            // don't unwrap or this, it will not work lolllllll
+            let str_out = format!("Enter authorization code from {}: ", app_data.url.unwrap());
+            println!("{}", str_out);
+            let mut line = String::new();
+            let _ = std::io::stdin().read_line(&mut line)?;
+            line.trim().to_string()
+        };
+
+        let token_data = client
+            .fetch_access_token(
+                app_data.client_id,
+                app_data.client_secret,
+                code,
+                megalodon::default::NO_REDIRECT.to_string(),
+            )
+            .await?;
+
+        println!("Access token: {}", token_data.access_token);
+
+        let client = generator(SNS::Pleroma, instance, Some(token_data.access_token), None)?;
+
+        Ok(FediClient { client })
     }
 
-    pub async fn post_to_fedi(&self, client: reqwest::Client) -> Result<String, E> {
-        let auth_status = Command::new("toot").arg("auth").output();
-        match auth_status {
-            Ok(output) => {
-                let stdout = String::from_utf8(output.stdout);
-                match stdout {
-                    Ok(content) => {
-                        if content.trim() == "You are not logged in to any accounts" {
-                            Command::new("toot")
-                                .args([
-                                    "login_cli",
-                                    "-i",
-                                    &self.instance,
-                                    "-e",
-                                    &self.email,
-                                    "-p",
-                                    &self.password,
-                                ])
-                                .output()?;
-                        }
-                    }
-                    Err(e) => return Err(e.into()),
-                }
-            }
-            Err(e) => return Err(e.into()),
-        }
-
+    pub async fn post_to_fedi(&self, client: reqwest::Client) -> Result<(), E> {
         let date = Utc::now()
             .date_naive()
             .pred_opt()
@@ -57,20 +72,24 @@ impl FediClient {
             client: &client,
             date: &date,
             output_format: OutputFormat::Markdown,
-            no_links: false,
+            no_links: true,
         };
 
         let output = fetch_prs(fetch_args)
             .await
             .map_err(|e| format!("Failed to fetch PRs: {}", e))?;
 
-        Command::new("toot")
-            .arg("post")
-            .args(["-v", "private", "-t", "text/markdown"])
-            .arg(&output)
-            .output()
-            .map_err(|_| "Failed to post to Fedi")?;
+        self.client
+            .post_status(
+                output,
+                Some(&PostStatusInputOptions {
+                    visibility: Some(StatusVisibility::Public),
+                    language: Some("en".to_string()),
+                    ..Default::default()
+                }),
+            )
+            .await?;
 
-        Ok(output)
+        Ok(())
     }
 }

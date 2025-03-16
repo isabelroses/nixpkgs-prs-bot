@@ -13,4 +13,4 @@ edition.workspace = true
 fetch-prs = { path = "../fetch-prs" }
 chrono = "0.4.40"
 reqwest = { version = "0.12.14", features = ["json"] }
-# megalodon = { version = "1.0.0" }
+megalodon = { version = "1.0.0" }

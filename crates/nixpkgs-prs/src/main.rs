@@ -40,10 +40,7 @@ pub enum Commands {
         instance: Option<String>,
 
         #[arg(long)]
-        email: Option<String>,
-
-        #[arg(long)]
-        password: Option<String>,
+        token: Option<String>,
     },
 }
 
@@ -116,18 +113,12 @@ pub async fn execute(cli: Cli) -> Result<(), E> {
                 eprintln!("Error posting to Bluesky: {e}");
             }
         }
-        Commands::Fedi {
-            instance,
-            email,
-            password,
-        } => {
+        Commands::Fedi { instance, token } => {
             let fedi_instance =
                 instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
-            let fedi_email = email.unwrap_or(env::var("FEDI_EMAIL").expect("FEDI_EMAIL not set"));
-            let fedi_password =
-                password.unwrap_or(env::var("FEDI_PASSWORD").expect("FEDI_PASSWORD not set"));
+            let fedi_token = token.or(env::var("FEDI_TOKEN").ok());
 
-            let fedi_client = FediClient::new(fedi_instance, fedi_email, fedi_password);
+            let fedi_client = FediClient::new(fedi_instance, fedi_token).await?;
 
             if let Err(e) = fedi_client.post_to_fedi(client).await {
                 eprintln!("Error posting to fedi: {e}");

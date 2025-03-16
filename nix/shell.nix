@@ -2,9 +2,6 @@
   mkShell,
   callPackage,
 
-  # rtp
-  toot,
-
   # extra tooling
   clippy,
   rustfmt,
@@ -17,7 +14,6 @@ mkShell {
   inputsFrom = [ defaultPackage ];
 
   packages = [
-    toot
     clippy
     rustfmt
     rust-analyzer
