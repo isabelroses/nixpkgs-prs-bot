@@ -8,6 +8,7 @@ readme.workspace = true
 repository.workspace = true
 homepage = "https://github.com/isabelroses/nixpkgs-prs-bot/tree/main/crates/post-fedi"
 edition.workspace = true
+publish = false
 
 [dependencies]
 fetch-prs = { path = "../fetch-prs" }

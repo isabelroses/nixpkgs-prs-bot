@@ -8,6 +8,7 @@ readme.workspace = true
 repository.workspace = true
 homepage = "https://github.com/isabelroses/nixpkgs-prs-bot/tree/main/crates/fetch-prs"
 edition.workspace = true
+publish = false
 
 [dependencies]
 reqwest.workspace = true
