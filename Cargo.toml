@@ -5,7 +5,7 @@ resolver = "2"
 
 [workspace.package]
 name = "nixpkgs-prs"
-version = "0.0.1"
+version = "0.1.0"
 license = "EUPL-1.2"
 description = "check the merged nixpkgs PRs for that day"
 readme = "README.md"
