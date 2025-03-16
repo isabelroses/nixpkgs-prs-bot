@@ -14,12 +14,13 @@ pub struct FediClient {
 type E = Box<dyn std::error::Error>;
 
 impl FediClient {
-    pub async fn new(instance: String, client_token: Option<String>) -> Result<Self, E> {
-        if let Some(client_token) = client_token {
-            let client = generator(SNS::Pleroma, instance.clone(), Some(client_token), None)?;
-            return Ok(FediClient { client });
-        }
+    pub async fn new(instance: String, client_token: String) -> Result<Self, E> {
+        let client = generator(SNS::Pleroma, instance.clone(), Some(client_token), None)?;
 
+        Ok(FediClient { client })
+    }
+
+    pub async fn bootstrap(instance: String) -> Result<String, E> {
         let client = generator(SNS::Pleroma, instance.clone(), None, None)?;
 
         let opts = AppInputOptions {
@@ -53,11 +54,11 @@ impl FediClient {
             )
             .await?;
 
-        println!("Access token: {}", token_data.access_token);
+        let token = token_data.access_token;
 
-        let client = generator(SNS::Pleroma, instance, Some(token_data.access_token), None)?;
+        println!("Access token: {}", token);
 
-        Ok(FediClient { client })
+        Ok(token)
     }
 
     pub async fn post_to_fedi(&self, client: reqwest::Client) -> Result<(), E> {
