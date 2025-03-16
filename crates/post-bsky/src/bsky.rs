@@ -25,13 +25,12 @@ impl BskyClient {
     }
 
     pub async fn post_to_bsky(&self, client: Client) -> Result<(), String> {
-        //let date = Utc::now()
-        //    .date_naive()
-        //    .pred_opt()
-        //    .unwrap()
-        //    .format("%Y-%m-%d")
-        //    .to_string();
-        let date = Utc::now().date_naive().format("%Y-%m-%d").to_string();
+        let date = Utc::now()
+            .date_naive()
+            .pred_opt()
+            .unwrap()
+            .format("%Y-%m-%d")
+            .to_string();
 
         let args = FetchArgs {
             client: &client,

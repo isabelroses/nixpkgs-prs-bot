@@ -1,3 +1,4 @@
+use regex::Regex;
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::Value;
@@ -32,7 +33,7 @@ pub struct FetchArgs<'a> {
 ///
 /// # Errors
 /// If the request fails
-pub async fn fetch_prs(args: FetchArgs<'_>) -> Result<String, reqwest::Error> {
+pub async fn fetch_prs(args: FetchArgs<'_>) -> Result<String, Box<dyn std::error::Error>> {
     let response = args
         .client
         .get(format!(
@@ -49,7 +50,9 @@ pub async fn fetch_prs(args: FetchArgs<'_>) -> Result<String, reqwest::Error> {
     let mut lib = Vec::new();
     let mut packages = Vec::new();
 
-    for pr in prs.iter().filter(|pr| !pr.title.contains("backport")) {
+    let lib_regex = Regex::new(r"^lib(:|/[^:]+:)")?;
+
+    for pr in prs.iter().filter(|pr| !pr.title.contains("Backport")) {
         let formatted = match (args.no_links, args.output_format) {
             (true, OutputFormat::Markdown) => format!("- #{} {}", pr.number, pr.title),
             (true, OutputFormat::PlainText) => format!("#{} {}", pr.number, pr.title),
@@ -61,7 +64,7 @@ pub async fn fetch_prs(args: FetchArgs<'_>) -> Result<String, reqwest::Error> {
 
         if pr.title.starts_with("nixos") {
             modules.push((pr.title.contains("init"), formatted));
-        } else if pr.title.starts_with("lib") {
+        } else if lib_regex.is_match(&pr.title) {
             lib.push((pr.title.contains("init"), formatted));
         } else {
             packages.push((pr.title.contains("init"), formatted));
