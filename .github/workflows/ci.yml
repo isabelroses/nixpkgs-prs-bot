@@ -1,0 +1,93 @@
+name: Check & Publish nixpkgs-prs
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry and build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run Tests
+        run: cargo test --all
+
+  publish:
+    name: Publish nixpkgs-prs
+    needs: check
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo registry and build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Ensure workspace is clean
+        run: cargo clean
+
+      - name: Build nixpkgs-prs
+        run: cargo build --release --package nixpkgs-prs --target ${{ matrix.target }}
+
+      - name: Package build artifacts
+        run: |
+          mkdir -p artifacts
+          cp target/${{ matrix.target }}/release/nixpkgs-prs artifacts/nixpkgs-prs-${{ matrix.target }}
+
+      - name: Upload artifacts to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish nixpkgs-prs (only on Linux x86_64)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish -p nixpkgs-prs --allow-dirty
+
