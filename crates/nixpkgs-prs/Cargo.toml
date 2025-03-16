@@ -1,0 +1,22 @@
+[package]
+name = "nixpkgs-prs"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+description.workspace = true
+readme.workspace = true
+repository.workspace = true
+homepage = "https://github.com/isabelroses/nixpkgs-prs-bot/tree/main/crates/nixpkgs-prs"
+edition.workspace = true
+
+[dependencies]
+clap = { version = "4.5.32", features = ["derive"] }
+chrono = "0.4.40"
+tokio = { version = "1.44.1", features = ["full"] }
+reqwest = { version = "0.12.14", features = ["json"] }
+fetch-prs = { path = "../fetch-prs" }
+post-bsky = { path = "../post-bsky" }
+post-fedi = { path = "../post-fedi" }
+
+[lints]
+workspace = true

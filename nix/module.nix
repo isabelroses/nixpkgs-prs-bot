@@ -1,4 +1,3 @@
-self:
 {
   lib,
   pkgs,
@@ -44,12 +43,17 @@ let
     SystemCallFilter = [ "@system-service" ];
     UMask = "0077";
   };
-
-  inherit (pkgs.stdenv.hostPlatform) system;
 in
 {
+  _class = "nixos";
+
   options.services.nixpkgs-prs-bot = {
     enable = mkEnableOption "nixpkgs prs bot";
+
+    package = mkOption {
+      type = lib.types.package;
+      default = pkgs.callPackage ./package.nix { };
+    };
 
     home = mkOption {
       type = lib.types.path;
@@ -61,11 +65,6 @@ in
         default = cfg.enable;
       };
 
-      package = mkOption {
-        type = lib.types.package;
-        default = self.packages.${system}.fedi-post;
-      };
-
       environmentFile = mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
@@ -75,11 +74,6 @@ in
     bsky = {
       enable = mkEnableOption "bsky" // {
         default = cfg.enable;
-      };
-
-      package = mkOption {
-        type = lib.types.package;
-        default = self.packages.${system}.bsky-post;
       };
 
       environmentFile = mkOption {
@@ -117,10 +111,10 @@ in
           nixpkgs-prs-fedibot = {
             description = "nixpkgs prs fedi bot";
             after = [ "network.target" ];
-            path = [ self.packages.${system}.fedi-post ];
+            path = [ cfg.package ];
 
             serviceConfig = {
-              ExecStart = getExe self.packages.${system}.fedi-post;
+              ExecStart = "${getExe cfg.package} fedi";
               EnvironmentFile = mkIf (cfg.fedi.environmentFile != null) cfg.bsky.environmentFile;
             } // common;
           };
@@ -130,10 +124,10 @@ in
           nixpkgs-prs-bskybot = {
             description = "nixpkgs prs bsky bot";
             after = [ "network.target" ];
-            path = [ self.packages.${system}.bsky-post ];
+            path = [ cfg.package ];
 
             serviceConfig = {
-              ExecStart = getExe self.packages.${system}.bsky-post;
+              ExecStart = "${getExe cfg.package} bsky";
               EnvironmentFile = mkIf (cfg.bsky.environmentFile != null) cfg.bsky.environmentFile;
             } // common;
           };
