@@ -8,6 +8,7 @@ readme.workspace = true
 repository.workspace = true
 homepage = "https://github.com/isabelroses/nixpkgs-prs-bot/tree/main/crates/nixpkgs-prs"
 edition.workspace = true
+keywords = ["cli", "nix", "nixpkgs", "prs", "github", "bot"]
 
 [dependencies]
 chrono.workspace = true
