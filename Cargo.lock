@@ -608,8 +608,9 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "fetch-prs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
+ "regex",
  "reqwest 0.12.14",
  "serde",
  "serde_json",
@@ -1425,7 +1426,7 @@ dependencies = [
 
 [[package]]
 name = "nixpkgs-prs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "clap",
@@ -1601,7 +1602,7 @@ checksum = "350e9b48cbc6b0e028b0473b114454c6316e57336ee184ceab6e53f72c178b3e"
 
 [[package]]
 name = "post-bsky"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bsky-sdk",
  "chrono",
@@ -1612,7 +1613,7 @@ dependencies = [
 
 [[package]]
 name = "post-fedi"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "fetch-prs",
