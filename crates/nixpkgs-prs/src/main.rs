@@ -22,42 +22,42 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Fetch merged PRs
+    /// fetch info from nixpkgs prs
     Fetch {
+        /// output format for pr info
         #[arg(long, default_value = "markdown")]
-        /// The output format
         output_format: String,
 
+        /// don't include links in pr list
         #[arg(long, default_value_t = false)]
-        /// Don't include links
         no_links: bool,
 
+        /// fetch prs since yesterday
         #[arg(long, default_value_t = false)]
-        /// Fetch PRs from yesterday
         yesterday: bool,
     },
 
+    /// post pr info to bksy
     #[cfg(feature = "post-bsky")]
-    /// Post to Bluesky
     Bsky {
+        /// user email
         #[arg(long)]
-        /// The email for the Bluesky account
         email: Option<String>,
 
+        /// user password
         #[arg(long)]
-        /// The password for the Bluesky account
         password: Option<String>,
     },
 
+    /// post pr info to bksy
     #[cfg(feature = "post-fedi")]
-    /// Post to fedi
     Fedi {
+        /// url to fedi instance (e.g., https://mastodon.social), falls back to `$FEDI_INSTANCE`
         #[arg(long)]
-        /// The instance to post to
         instance: Option<String>,
 
+        /// access token (returned after initial login), falls back to `$FEDI_TOKEN`
         #[arg(long)]
-        /// The client token
         token: Option<String>,
     },
 
