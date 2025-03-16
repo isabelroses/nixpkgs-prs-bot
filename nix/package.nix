@@ -53,6 +53,6 @@ rustPlatform.buildRustPackage {
     inherit (toml) homepage description;
     license = lib.licenses.eupl12;
     maintainers = with lib.maintainers; [ isabelroses ];
-    mainPackage = "nixpkgs-prs";
+    mainProgram = "nixpkgs-prs";
   };
 }
