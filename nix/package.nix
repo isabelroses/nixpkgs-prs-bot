@@ -3,6 +3,7 @@
   rustPlatform,
   openssl,
   pkg-config,
+  versionCheckHook,
 }:
 let
   toml = (lib.importTOML ../Cargo.toml).workspace.package;
@@ -31,11 +32,16 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [
     pkg-config
+    versionCheckHook
   ];
 
   buildInputs = [
     openssl
   ];
+
+  doInstallCheck = true;
+  versionCheckProgram = "${placeholder "out"}/bin/nixpkgs-prs";
+  versionCheckProgramArg = [ "--version" ];
 
   meta = {
     inherit (toml) homepage description;

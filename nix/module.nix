@@ -26,11 +26,6 @@ in
       default = pkgs.callPackage ./package.nix { };
     };
 
-    home = mkOption {
-      type = lib.types.str;
-      default = "/var/lib/nixpkgs-prs-bot";
-    };
-
     fedi = {
       enable = mkEnableOption "fedi" // {
         default = cfg.enable;
@@ -58,8 +53,7 @@ in
     users = {
       users.nixpkgs-prs-bot = {
         isSystemUser = true;
-        inherit (cfg) home;
-        createHome = true;
+        createHome = false;
         description = "nixpkgs prs bot";
         group = "nixpkgs-prs-bot";
       };
@@ -92,7 +86,7 @@ in
                 Type = "oneshot";
                 User = "nixpkgs-prs-bot";
                 Group = "nixpkgs-prs-bot";
-                ReadWritePaths = [ cfg.home ];
+                ReadWritePaths = [ ];
                 LockPersonality = true;
                 MemoryDenyWriteExecute = true;
                 NoNewPrivileges = true;
