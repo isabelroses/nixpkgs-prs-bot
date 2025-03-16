@@ -52,7 +52,7 @@ pub enum Commands {
     /// post pr info to bksy
     #[cfg(feature = "post-fedi")]
     Fedi {
-        /// url to fedi instance (e.g., https://mastodon.social), falls back to `$FEDI_INSTANCE`
+        /// url to fedi instance (e.g., <https://mastodon.social>), falls back to `$FEDI_INSTANCE`
         #[arg(long)]
         instance: Option<String>,
 

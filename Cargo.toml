@@ -3,8 +3,11 @@ default-members = ["crates/nixpkgs-prs"]
 members = ["crates/nixpkgs-prs", "crates/fetch-prs", "crates/post-bsky", "crates/post-fedi"]
 resolver = "2"
 
+[workspace.dependencies]
+reqwest = { version = "0.12.14", default-features = false }
+chrono = { version = "0.4.40", default-features = false }
+
 [workspace.package]
-name = "nixpkgs-prs"
 version = "0.2.0"
 license = "EUPL-1.2"
 description = "check the merged nixpkgs PRs for that day"

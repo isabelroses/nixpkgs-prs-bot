@@ -11,6 +11,6 @@ edition.workspace = true
 
 [dependencies]
 fetch-prs = { path = "../fetch-prs" }
-chrono = "0.4.40"
-reqwest = { version = "0.12.14", default-features = false }
-megalodon ="1.0.0"
+chrono.workspace = true
+reqwest.workspace = true
+megalodon = "1.0.0"
