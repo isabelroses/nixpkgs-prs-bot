@@ -1,0 +1,19 @@
+[workspace]
+default-members = ["crates/nixpkgs-prs"]
+members = ["crates/nixpkgs-prs", "crates/fetch-prs", "crates/post-bsky", "crates/post-fedi"]
+resolver = "2"
+
+[workspace.package]
+name = "nixpkgs-prs"
+version = "0.0.1"
+license = "EUPL-1.2"
+description = "check the merged nixpkgs PRs for that day"
+readme = "README.md"
+homepage = "https://github.com/isabelroses/nixpkgs-prs-bot"
+repository = "https://github.com/isabelroses/nixpkgs-prs-bot"
+authors = [ "isabel roses <isabel@isabelroses.com>" ]
+edition = "2024"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"

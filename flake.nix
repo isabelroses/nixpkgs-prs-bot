@@ -7,23 +7,25 @@
       inherit (nixpkgs) lib;
 
       forAllSystems =
-        function:
-        nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (
-          system: function nixpkgs.legacyPackages.${system}
-        );
+        function: lib.genAttrs lib.systems.flakeExposed (system: function nixpkgs.legacyPackages.${system});
     in
     {
-      packages = forAllSystems (
-        pkgs:
-        lib.packagesFromDirectoryRecursive {
-          directory = ./pkgs;
-          callPackage = lib.callPackageWith (pkgs // self.packages.${pkgs.stdenv.hostPlatform.system});
-        }
-      );
+      packages = forAllSystems (pkgs: {
+        default = self.packages.${pkgs.stdenv.hostPlatform.system}.nixpkgs-prs;
+        nixpkgs-prs = pkgs.callPackage ./nix/package.nix { };
+      });
+
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.callPackage ./nix/shell.nix { };
+      });
 
       nixosModules = {
         default = self.nixosModules.nixpkgs-prs-bot;
-        nixpkgs-prs-bot = import ./module self;
+
+        nixpkgs-prs-bot = {
+          _file = "${self.outPath}/flake.nix#$nixosModules.nixpkgs-prs-bot";
+          imports = [ ./nix/module.nix ];
+        };
       };
     };
 }
