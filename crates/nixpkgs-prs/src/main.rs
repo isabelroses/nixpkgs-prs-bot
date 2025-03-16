@@ -22,33 +22,51 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Fetch merged PRs
     Fetch {
         #[arg(long, default_value = "markdown")]
+        /// The output format
         output_format: String,
 
         #[arg(long, default_value_t = false)]
+        /// Don't include links
         no_links: bool,
 
         #[arg(long, default_value_t = false)]
+        /// Fetch PRs from yesterday
         yesterday: bool,
     },
 
     #[cfg(feature = "post-bsky")]
+    /// Post to Bluesky
     Bsky {
         #[arg(long)]
+        /// The email for the Bluesky account
         email: Option<String>,
 
         #[arg(long)]
+        /// The password for the Bluesky account
         password: Option<String>,
     },
 
     #[cfg(feature = "post-fedi")]
+    /// Post to fedi
     Fedi {
         #[arg(long)]
+        /// The instance to post to
         instance: Option<String>,
 
         #[arg(long)]
+        /// The client token
         token: Option<String>,
+    },
+
+    #[cfg(feature = "post-fedi")]
+    /// Create the fedi client token
+    FediBootstrap {
+        #[arg(long)]
+        /// The instance to generate the token for
+        instance: Option<String>,
     },
 }
 
@@ -111,8 +129,7 @@ pub async fn execute(cli: Cli) -> Result<(), E> {
         }
         #[cfg(feature = "post-bsky")]
         Commands::Bsky { email, password } => {
-            let bsky_email =
-                email.unwrap_or(env::var("BSKY_EMAIL").expect("BSKY_USERNAME not set"));
+            let bsky_email = email.unwrap_or(env::var("BSKY_EMAIL").expect("BSKY_EMAIL not set"));
             let bsky_password =
                 password.unwrap_or(env::var("BSKY_PASSWORD").expect("BSKY_PASSWORD not set"));
 
@@ -126,13 +143,19 @@ pub async fn execute(cli: Cli) -> Result<(), E> {
         Commands::Fedi { instance, token } => {
             let fedi_instance =
                 instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
-            let fedi_token = token.or(env::var("FEDI_TOKEN").ok());
+            let fedi_token = token.unwrap_or(env::var("FEDI_TOKEN").expect("FEDI_TOKEN not set"));
 
             let fedi_client = FediClient::new(fedi_instance, fedi_token).await?;
 
             if let Err(e) = fedi_client.post_to_fedi(client).await {
                 eprintln!("Error posting to fedi: {e}");
             }
+        }
+        #[cfg(feature = "post-fedi")]
+        Commands::FediBootstrap { instance } => {
+            let fedi_instance =
+                instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
+            FediClient::bootstrap(fedi_instance).await?;
         }
     }
 
