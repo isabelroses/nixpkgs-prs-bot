@@ -15,8 +15,13 @@ chrono = "0.4.40"
 tokio = { version = "1.44.1", default-features = false }
 reqwest = { version = "0.12.14", default-features = false }
 fetch-prs = { path = "../fetch-prs" }
-post-bsky = { path = "../post-bsky" }
-post-fedi = { path = "../post-fedi" }
+post-bsky = { path = "../post-bsky", optional = true }
+post-fedi = { path = "../post-fedi", optional = true }
+
+[features]
+default = ["post-bsky", "post-fedi"]
+post-bsky = ["dep:post-bsky"]
+post-fedi = ["dep:post-fedi"]
 
 [lints]
 workspace = true

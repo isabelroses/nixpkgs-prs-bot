@@ -1,16 +1,20 @@
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use fetch_prs::{fetch_prs, FetchArgs, OutputFormat};
-use post_bsky::BskyClient;
-use post_fedi::FediClient;
 use reqwest::Client;
 use std::env;
+
+#[cfg(feature = "post-bsky")]
+use post_bsky::BskyClient;
+
+#[cfg(feature = "post-fedi")]
+use post_fedi::FediClient;
 
 /// Error type
 type E = Box<dyn std::error::Error>;
 
 #[derive(Parser)]
-#[command(name = "nixpkgs-prs-bot", about = "Fetch and post merged PRs")]
+#[command(name = "nixpkgs-prs", about = "Fetch and post merged PRs", version)]
 pub struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -28,6 +32,8 @@ pub enum Commands {
         #[arg(long, default_value_t = false)]
         yesterday: bool,
     },
+
+    #[cfg(feature = "post-bsky")]
     Bsky {
         #[arg(long)]
         email: Option<String>,
@@ -35,6 +41,8 @@ pub enum Commands {
         #[arg(long)]
         password: Option<String>,
     },
+
+    #[cfg(feature = "post-fedi")]
     Fedi {
         #[arg(long)]
         instance: Option<String>,
@@ -101,6 +109,7 @@ pub async fn execute(cli: Cli) -> Result<(), E> {
                 Err(e) => eprintln!("Error: {e}"),
             }
         }
+        #[cfg(feature = "post-bsky")]
         Commands::Bsky { email, password } => {
             let bsky_email =
                 email.unwrap_or(env::var("BSKY_EMAIL").expect("BSKY_USERNAME not set"));
@@ -113,6 +122,7 @@ pub async fn execute(cli: Cli) -> Result<(), E> {
                 eprintln!("Error posting to Bluesky: {e}");
             }
         }
+        #[cfg(feature = "post-fedi")]
         Commands::Fedi { instance, token } => {
             let fedi_instance =
                 instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
