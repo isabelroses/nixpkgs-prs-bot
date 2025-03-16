@@ -12,6 +12,6 @@ edition.workspace = true
 [dependencies]
 fetch-prs = { path = "../fetch-prs" }
 chrono = "0.4.40"
-reqwest = { version = "0.12.14", features = ["json"] }
+reqwest = { version = "0.12.14", default-features = false }
 bsky-sdk = "0.1.16"
 ipld-core = "0.4.2"

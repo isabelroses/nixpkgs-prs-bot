@@ -12,8 +12,8 @@ edition.workspace = true
 [dependencies]
 clap = { version = "4.5.32", features = ["derive"] }
 chrono = "0.4.40"
-tokio = { version = "1.44.1", features = ["full"] }
-reqwest = { version = "0.12.14", features = ["json"] }
+tokio = { version = "1.44.1", default-features = false }
+reqwest = { version = "0.12.14", default-features = false }
 fetch-prs = { path = "../fetch-prs" }
 post-bsky = { path = "../post-bsky" }
 post-fedi = { path = "../post-fedi" }
