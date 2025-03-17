@@ -33,7 +33,7 @@ pub struct FetchArgs<'a> {
 ///
 /// # Errors
 /// If the request fails
-pub async fn fetch_prs(args: FetchArgs<'_>) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn fetch_prs(args: FetchArgs<'_>) -> Result<String, crate::Error> {
     let response = args
         .client
         .get(format!(

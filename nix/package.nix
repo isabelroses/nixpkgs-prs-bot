@@ -6,7 +6,7 @@
   versionCheckHook,
 }:
 let
-  toml = (lib.importTOML ../Cargo.toml).workspace.package;
+  toml = (lib.importTOML ../Cargo.toml).package;
 in
 rustPlatform.buildRustPackage {
   pname = "nixpkgs-prs";
@@ -18,15 +18,10 @@ rustPlatform.buildRustPackage {
       lib.fileset.unions [
         ../Cargo.toml
         ../Cargo.lock
-        ../crates
+        ../src
       ]
     );
   };
-
-  cargoBuildFlags = [
-    "--package"
-    "nixpkgs-prs"
-  ];
 
   cargoLock.lockFile = ../Cargo.lock;
 

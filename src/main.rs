@@ -1,17 +1,25 @@
 use chrono::Utc;
 use clap::{Parser, Subcommand};
-use fetch_prs::{fetch_prs, FetchArgs, OutputFormat};
 use reqwest::Client;
+
+mod github;
+use github::{fetch_prs, FetchArgs, OutputFormat};
+
+#[cfg(any(feature = "post-bsky", feature = "post-fedi"))]
 use std::env;
 
 #[cfg(feature = "post-bsky")]
-use post_bsky::BskyClient;
+mod bsky;
+#[cfg(feature = "post-bsky")]
+use bsky::BskyClient;
 
 #[cfg(feature = "post-fedi")]
-use post_fedi::FediClient;
+mod fedi;
+#[cfg(feature = "post-fedi")]
+use fedi::FediClient;
 
 /// Error type
-type E = Box<dyn std::error::Error>;
+type Error = Box<dyn std::error::Error>;
 
 #[derive(Parser)]
 #[command(name = "nixpkgs-prs", about = "Fetch and post merged PRs", version)]
@@ -71,7 +79,7 @@ pub enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), E> {
+async fn main() -> Result<(), Error> {
     let args = Cli::parse();
     execute(args).await?;
     Ok(())
@@ -90,7 +98,7 @@ async fn main() -> Result<(), E> {
 ///
 /// # Panics
 /// If there is no yesterday
-pub async fn execute(cli: Cli) -> Result<(), E> {
+pub async fn execute(cli: Cli) -> Result<(), Error> {
     let client = Client::builder().user_agent("nixpkgs-pr-bot").build()?;
 
     match cli.command {

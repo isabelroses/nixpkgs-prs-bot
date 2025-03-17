@@ -1,5 +1,5 @@
+use crate::github::{fetch_prs, FetchArgs, OutputFormat};
 use chrono::Utc;
-use fetch_prs::{fetch_prs, FetchArgs, OutputFormat};
 use megalodon::{
     entities::status::StatusVisibility,
     generator,
@@ -11,16 +11,14 @@ pub struct FediClient {
     client: Box<dyn megalodon::Megalodon + Send + Sync>,
 }
 
-type E = Box<dyn std::error::Error>;
-
 impl FediClient {
-    pub async fn new(instance: String, client_token: String) -> Result<Self, E> {
+    pub async fn new(instance: String, client_token: String) -> Result<Self, crate::Error> {
         let client = generator(SNS::Pleroma, instance.clone(), Some(client_token), None)?;
 
         Ok(FediClient { client })
     }
 
-    pub async fn bootstrap(instance: String) -> Result<String, E> {
+    pub async fn bootstrap(instance: String) -> Result<String, crate::Error> {
         let client = generator(SNS::Pleroma, instance.clone(), None, None)?;
 
         let opts = AppInputOptions {
@@ -61,7 +59,7 @@ impl FediClient {
         Ok(token)
     }
 
-    pub async fn post_to_fedi(&self, client: reqwest::Client) -> Result<(), E> {
+    pub async fn post_to_fedi(&self, client: reqwest::Client) -> Result<(), crate::Error> {
         let date = Utc::now()
             .date_naive()
             .pred_opt()
@@ -73,7 +71,7 @@ impl FediClient {
             client: &client,
             date: &date,
             output_format: OutputFormat::Markdown,
-            no_links: true,
+            no_links: false,
         };
 
         let output = fetch_prs(fetch_args)

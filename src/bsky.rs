@@ -1,3 +1,4 @@
+use crate::github::{fetch_prs, FetchArgs, OutputFormat};
 use bsky_sdk::{
     api::{
         app::bsky::feed::post::{RecordData, ReplyRef, ReplyRefData},
@@ -7,7 +8,6 @@ use bsky_sdk::{
     BskyAgent,
 };
 use chrono::Utc;
-use fetch_prs::{fetch_prs, FetchArgs, OutputFormat};
 use ipld_core::ipld::Ipld;
 use reqwest::Client;
 
@@ -15,10 +15,8 @@ pub struct BskyClient {
     pub agent: BskyAgent,
 }
 
-type E = Box<dyn std::error::Error>;
-
 impl BskyClient {
-    pub async fn new(email: String, password: String) -> Result<Self, E> {
+    pub async fn new(email: String, password: String) -> Result<Self, crate::Error> {
         let agent = BskyAgent::builder().build().await?;
         let _ = agent.login(email, password).await?;
         Ok(Self { agent })

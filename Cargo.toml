@@ -1,14 +1,6 @@
-[workspace]
-default-members = ["crates/nixpkgs-prs"]
-members = ["crates/nixpkgs-prs", "crates/fetch-prs", "crates/post-bsky", "crates/post-fedi"]
-resolver = "2"
-
-[workspace.dependencies]
-reqwest = { version = "0.12.14", default-features = false }
-chrono = { version = "0.4.40", default-features = false }
-
-[workspace.package]
-version = "0.2.0"
+[package]
+name = "nixpkgs-prs"
+version = "0.3.0"
 license = "EUPL-1.2"
 description = "check the merged nixpkgs PRs for that day"
 readme = "README.md"
@@ -16,6 +8,24 @@ homepage = "https://github.com/isabelroses/nixpkgs-prs-bot"
 repository = "https://github.com/isabelroses/nixpkgs-prs-bot"
 authors = [ "isabel roses <isabel@isabelroses.com>" ]
 edition = "2024"
+keywords = ["cli", "nix", "nixpkgs", "nixpkgs-prs"]
+
+[dependencies]
+reqwest = { version = "0.12.14", features = ["json"] }
+chrono = { version = "0.4.40", default-features = false, features = ["now"] }
+clap = { version = "4.5.32", features = ["derive"] }
+tokio = { version = "1.44.1", default-features = false, features = ["rt-multi-thread", "macros"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+regex = "1.11.1"
+megalodon = { version = "1.0.0", optional = true }
+bsky-sdk = { version = "0.1.16", default-features = false, features = [ "default-client" ], optional = true }
+ipld-core = { version = "0.4.2", optional = true }
+
+[features]
+default = ["post-bsky", "post-fedi"]
+post-bsky = ["dep:bsky-sdk", "dep:ipld-core"]
+post-fedi = ["dep:megalodon"]
 
 [workspace.lints.clippy]
 all = "warn"

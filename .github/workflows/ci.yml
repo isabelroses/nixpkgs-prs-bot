@@ -1,4 +1,4 @@
-name: Check & Publish nixpkgs-prs
+name: Check & Publish & Release
 
 on:
   push:
@@ -32,9 +32,29 @@ jobs:
         run: cargo test --all
 
   publish:
-    name: Publish nixpkgs-prs
+    name: Publish
     needs: check
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Publish nixpkgs-prs
+        run: cargo publish --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  release:
+    name: Release
+    needs: [check, publish]
 
     runs-on: ${{ matrix.os }}
 
@@ -43,16 +63,22 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+            ext: ""
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-24.04-arm
+            ext: ""
           - target: x86_64-apple-darwin
             os: macos-latest
+            ext: ""
           - target: aarch64-apple-darwin
             os: macos-latest
+            ext: ""
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+            ext: ".exe"
           - target: aarch64-pc-windows-msvc
             os: windows-latest
+            ext: ".exe"
 
     steps:
       - name: Checkout repository
@@ -70,23 +96,16 @@ jobs:
         run: cargo clean
 
       - name: Build nixpkgs-prs
-        run: cargo build --release --package nixpkgs-prs --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package build artifacts
         run: |
           mkdir -p artifacts
-          cp target/${{ matrix.target }}/release/nixpkgs-prs artifacts/nixpkgs-prs-${{ matrix.target }}
+          cp target/${{ matrix.target }}/release/nixpkgs-prs${{ matrix.ext }} artifacts/nixpkgs-prs-${{ matrix.target }}${{ matrix.ext }}
 
       - name: Upload artifacts to GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Publish nixpkgs-prs (only on Linux x86_64)
-      #   if: matrix.target == 'x86_64-unknown-linux-gnu'
-      #   env:
-      #     CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      #   run: |
-      #     cargo publish -p nixpkgs-prs --allow-dirty --no-verify
