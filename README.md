@@ -4,6 +4,11 @@
 [nixpkgs](https://github.com/NixOS/nixpkgs) repository. It supports optional
 posting to [Bluesky](https://bsky.app) and [Fediverse](https://fediverse.to) platforms, which are gated behind feature flags.
 
+## "Offical" deployments to follow
+
+- [Bluesky](https://bsky.app/profile/nixpkgs-prs-bot.bsky.social)
+- [Fediverse](https://akko.isabelroses.com/nixpkgsprsbot)
+
 ## :sparkles: Features
 
 - **Fetch PR Data**: Retrieves pull request information from the nixpkgs repository.
