@@ -1,6 +1,6 @@
 [package]
 name = "nixpkgs-prs"
-version = "0.3.0"
+version = "0.4.0"
 license = "EUPL-1.2"
 description = "check the merged nixpkgs PRs for that day"
 readme = "README.md"
