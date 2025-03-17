@@ -12,7 +12,7 @@ pub struct FediClient {
 }
 
 impl FediClient {
-    pub async fn new(instance: String, client_token: String) -> Result<Self, crate::Error> {
+    pub fn new(instance: String, client_token: String) -> Result<Self, crate::Error> {
         let client = generator(SNS::Pleroma, instance.clone(), Some(client_token), None)?;
 
         Ok(FediClient { client })
