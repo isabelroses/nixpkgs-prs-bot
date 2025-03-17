@@ -27,6 +27,6 @@ default = ["post-bsky", "post-fedi"]
 post-bsky = ["dep:bsky-sdk", "dep:ipld-core"]
 post-fedi = ["dep:megalodon"]
 
-[workspace.lints.clippy]
+[lints.clippy]
 all = "warn"
 pedantic = "warn"
