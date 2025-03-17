@@ -39,7 +39,7 @@ impl BskyClient {
 
         let full_content = fetch_prs(args)
             .await
-            .map_err(|e| format!("Failed to fetch PRs: {}", e))?;
+            .map_err(|e| format!("Failed to fetch PRs: {e}"))?;
 
         // Split content into chunks of approximately 300 words
         let chunks = self.split_into_chunks(full_content, 300);
@@ -59,7 +59,7 @@ impl BskyClient {
                 text: chunks[0].clone(),
             })
             .await
-            .map_err(|e| format!("Failed to post main content to bsky: {}", e))?;
+            .map_err(|e| format!("Failed to post main content to bsky: {e}"))?;
 
         // Get the URI and CID of the main post for reply references
         let main_uri = main_post.uri.clone();
@@ -106,7 +106,7 @@ impl BskyClient {
                     text: chunk.clone(),
                 })
                 .await
-                .map_err(|e| format!("Failed to post reply to bsky: {}", e))?;
+                .map_err(|e| format!("Failed to post reply to bsky: {e}"))?;
 
             // Update the references for the next reply
             last_uri = reply_post.uri.clone();

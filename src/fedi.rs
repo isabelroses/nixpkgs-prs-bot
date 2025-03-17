@@ -33,7 +33,7 @@ impl FediClient {
         let code = {
             // don't unwrap or this, it will not work lolllllll
             let str_out = format!("Enter authorization code from {}: ", app_data.url.unwrap());
-            println!("{}", str_out);
+            println!("{str_out}");
             let mut line = String::new();
             let _ = std::io::stdin().read_line(&mut line)?;
             line.trim().to_string()
@@ -50,7 +50,7 @@ impl FediClient {
 
         let token = token_data.access_token;
 
-        println!("Access token: {}", token);
+        println!("Access token: {token}");
 
         Ok(token)
     }
@@ -72,7 +72,7 @@ impl FediClient {
 
         let output = fetch_prs(fetch_args)
             .await
-            .map_err(|e| format!("Failed to fetch PRs: {}", e))?;
+            .map_err(|e| format!("Failed to fetch PRs: {e}"))?;
 
         self.client
             .post_status(
