@@ -22,17 +22,13 @@ impl FediClient {
         let client = generator(SNS::Pleroma, instance.clone(), None, None)?;
 
         let opts = AppInputOptions {
-            scopes: Some(["read".to_string(), "write".to_string()].to_vec()),
+            scopes: Some(["write".to_string()].to_vec()),
             ..Default::default()
         };
 
-        let app_data = match client
+        let app_data = client
             .register_app("nixpkgs-prs-bot".to_string(), &opts)
-            .await
-        {
-            Ok(data) => data,
-            Err(e) => return Err(Box::new(e)),
-        };
+            .await?;
 
         let code = {
             // don't unwrap or this, it will not work lolllllll
