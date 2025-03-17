@@ -42,7 +42,7 @@ impl BskyClient {
             .map_err(|e| format!("Failed to fetch PRs: {e}"))?;
 
         // Split content into chunks of approximately 300 words
-        let chunks = self.split_into_chunks(full_content, 300);
+        let chunks = split_into_chunks(full_content.as_str(), 300);
 
         // Post the first chunk as the main post
         let main_post: Object<bsky_sdk::api::com::atproto::repo::create_record::OutputData> = self
@@ -109,51 +109,50 @@ impl BskyClient {
                 .map_err(|e| format!("Failed to post reply to bsky: {e}"))?;
 
             // Update the references for the next reply
-            last_uri = reply_post.uri.clone();
+            last_uri.clone_from(&reply_post.uri);
             last_cid = reply_post.cid.clone();
         }
 
         Ok(())
     }
+}
 
-    // Helper function to split content into chunks of approximately `max_chars` characters
-    fn split_into_chunks(&self, content: String, max_chars: usize) -> Vec<String> {
-        let mut chunks = Vec::new();
-        let mut current_chunk = String::new();
+// Helper function to split content into chunks of approximately `max_chars` characters
+fn split_into_chunks(content: &str, max_chars: usize) -> Vec<String> {
+    let mut chunks = Vec::new();
+    let mut current_chunk = String::new();
 
-        for line in content.split_inclusive('\n') {
-            if current_chunk.len() + line.len() > max_chars {
-                chunks.push(current_chunk.clone());
-                current_chunk.clear();
-            }
+    for line in content.split_inclusive('\n') {
+        if current_chunk.len() + line.len() > max_chars {
+            chunks.push(current_chunk.clone());
+            current_chunk.clear();
+        }
 
-            if current_chunk.len() + line.len() <= max_chars {
-                current_chunk.push_str(line);
-            } else {
-                let mut words = line.split_whitespace().peekable();
-                while let Some(word) = words.next() {
-                    if !current_chunk.is_empty() && current_chunk.len() + word.len() + 1 > max_chars
-                    {
-                        chunks.push(current_chunk.clone());
-                        current_chunk.clear();
-                    }
+        if current_chunk.len() + line.len() <= max_chars {
+            current_chunk.push_str(line);
+        } else {
+            let mut words = line.split_whitespace().peekable();
+            while let Some(word) = words.next() {
+                if !current_chunk.is_empty() && current_chunk.len() + word.len() + 1 > max_chars {
+                    chunks.push(current_chunk.clone());
+                    current_chunk.clear();
+                }
 
-                    if !current_chunk.is_empty() {
-                        current_chunk.push(' ');
-                    }
+                if !current_chunk.is_empty() {
+                    current_chunk.push(' ');
+                }
 
-                    current_chunk.push_str(word);
-                    if words.peek().is_none() && line.ends_with('\n') {
-                        current_chunk.push('\n');
-                    }
+                current_chunk.push_str(word);
+                if words.peek().is_none() && line.ends_with('\n') {
+                    current_chunk.push('\n');
                 }
             }
         }
-
-        if !current_chunk.is_empty() {
-            chunks.push(current_chunk);
-        }
-
-        chunks
     }
+
+    if !current_chunk.is_empty() {
+        chunks.push(current_chunk);
+    }
+
+    chunks
 }
