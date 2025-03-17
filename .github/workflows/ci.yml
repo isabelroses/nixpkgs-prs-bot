@@ -83,6 +83,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          depth: 0
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -103,9 +105,16 @@ jobs:
           mkdir -p artifacts
           cp target/${{ matrix.target }}/release/nixpkgs-prs${{ matrix.ext }} artifacts/nixpkgs-prs-${{ matrix.target }}${{ matrix.ext }}
 
+      - name: Generate CHANGELOG
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          body_path: ${{ steps.git-cliff.outputs.changelog }}
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

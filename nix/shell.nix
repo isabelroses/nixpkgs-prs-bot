@@ -6,6 +6,7 @@
   clippy,
   rustfmt,
   rust-analyzer,
+  git-cliff,
 }:
 let
   defaultPackage = callPackage ./package.nix { };
@@ -17,5 +18,6 @@ mkShell {
     clippy
     rustfmt
     rust-analyzer
+    git-cliff
   ];
 }
