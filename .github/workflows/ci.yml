@@ -52,9 +52,26 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
+  generate-changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate CHANGELOG
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          args: -vv --latest --strip header
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   release:
     name: Release
-    needs: [check, publish]
+    needs: [check, publish, generate-changelog]
 
     runs-on: ${{ matrix.os }}
 
@@ -83,8 +100,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -94,9 +109,6 @@ jobs:
       - name: Cache cargo registry and build
         uses: Swatinem/rust-cache@v2
 
-      - name: Ensure workspace is clean
-        run: cargo clean
-
       - name: Build nixpkgs-prs
         run: cargo build --release --target ${{ matrix.target }}
 
@@ -104,12 +116,6 @@ jobs:
         run: |
           mkdir -p artifacts
           cp target/${{ matrix.target }}/release/nixpkgs-prs${{ matrix.ext }} artifacts/nixpkgs-prs-${{ matrix.target }}${{ matrix.ext }}
-
-      - name: Generate CHANGELOG
-        uses: orhun/git-cliff-action@v4
-        id: git-cliff
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@v2
