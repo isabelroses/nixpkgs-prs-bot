@@ -56,6 +56,9 @@ jobs:
     name: Generate Changelog
     runs-on: ubuntu-latest
 
+    outputs:
+      changelog: ${{ steps.git-cliff.outputs.changelog }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -120,7 +123,7 @@ jobs:
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          body_path: ${{ steps.git-cliff.outputs.changelog }}
+          body_path: ${{ needs.generate-changelog.outputs.changelog }}
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
