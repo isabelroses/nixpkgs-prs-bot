@@ -137,9 +137,17 @@ pub async fn execute(cli: Cli) -> Result<(), Error> {
         }
         #[cfg(feature = "post-bsky")]
         Commands::Bsky { email, password } => {
-            let bsky_email = email.unwrap_or(env::var("BSKY_EMAIL").expect("BSKY_EMAIL not set"));
-            let bsky_password =
-                password.unwrap_or(env::var("BSKY_PASSWORD").expect("BSKY_PASSWORD not set"));
+            let bsky_email = match email {
+                Some(email) => email,
+                None => env::var("BSKY_EMAIL")
+                    .map_err(|_| "Email not provided and BSKY_EMAIL not set")?,
+            };
+
+            let bsky_password = match password {
+                Some(password) => password,
+                None => env::var("BSKY_PASSWORD")
+                    .map_err(|_| "Password not provided and BSKY_PASSWORD not set")?,
+            };
 
             let bsky_client = BskyClient::new(bsky_email, bsky_password).await?;
 
@@ -149,9 +157,17 @@ pub async fn execute(cli: Cli) -> Result<(), Error> {
         }
         #[cfg(feature = "post-fedi")]
         Commands::Fedi { instance, token } => {
-            let fedi_instance =
-                instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
-            let fedi_token = token.unwrap_or(env::var("FEDI_TOKEN").expect("FEDI_TOKEN not set"));
+            let fedi_instance = match instance {
+                Some(instance) => instance,
+                None => env::var("FEDI_INSTANCE")
+                    .map_err(|_| "Instance not provided and FEDI_INSTANCE not set")?,
+            };
+
+            let fedi_token = match token {
+                Some(token) => token,
+                None => env::var("FEDI_TOKEN")
+                    .map_err(|_| "Token not provided and FEDI_TOKEN not set")?,
+            };
 
             let fedi_client = FediClient::new(client, &fedi_instance, fedi_token);
 
@@ -161,8 +177,12 @@ pub async fn execute(cli: Cli) -> Result<(), Error> {
         }
         #[cfg(feature = "post-fedi")]
         Commands::FediBootstrap { instance } => {
-            let fedi_instance =
-                instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
+            let fedi_instance = match instance {
+                Some(instance) => instance,
+                None => env::var("FEDI_INSTANCE")
+                    .map_err(|_| "Instance not provided and FEDI_INSTANCE not set")?,
+            };
+
             FediClient::bootstrap(fedi_instance).await?;
         }
     }
