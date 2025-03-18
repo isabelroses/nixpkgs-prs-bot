@@ -153,9 +153,9 @@ pub async fn execute(cli: Cli) -> Result<(), Error> {
                 instance.unwrap_or(env::var("FEDI_INSTANCE").expect("FEDI_INSTANCE not set"));
             let fedi_token = token.unwrap_or(env::var("FEDI_TOKEN").expect("FEDI_TOKEN not set"));
 
-            let fedi_client = FediClient::new(&fedi_instance, fedi_token)?;
+            let fedi_client = FediClient::new(client, &fedi_instance, fedi_token);
 
-            if let Err(e) = fedi_client.post_to_fedi(client).await {
+            if let Err(e) = fedi_client.post_to_fedi().await {
                 eprintln!("Error posting to fedi: {e}");
             }
         }

@@ -1,21 +1,30 @@
 use crate::github::{fetch_prs, FetchArgs, OutputFormat};
 use chrono::Utc;
-use megalodon::{
-    entities::status::StatusVisibility,
-    generator,
-    megalodon::{AppInputOptions, PostStatusInputOptions},
-    SNS,
-};
+use megalodon::{generator, megalodon::AppInputOptions, SNS};
+use reqwest::{multipart, Url};
 
 pub struct FediClient {
-    client: Box<dyn megalodon::Megalodon + Send + Sync>,
+    //client: Box<dyn megalodon::Megalodon + Send + Sync>,
+    api_client: reqwest::Client,
+    instance: String,
+    access_token: Option<String>,
 }
 
 impl FediClient {
-    pub fn new(instance: &str, client_token: String) -> Result<Self, crate::Error> {
-        let client = generator(SNS::Pleroma, instance.to_string(), Some(client_token), None)?;
+    pub fn new(api_client: reqwest::Client, instance: &str, client_token: String) -> Self {
+        //let client = generator(
+        //    SNS::Pleroma,
+        //    instance.to_string(),
+        //    Some(client_token.clone()),
+        //    None,
+        //)?;
 
-        Ok(FediClient { client })
+        FediClient {
+            //client,
+            api_client,
+            instance: instance.to_string(),
+            access_token: Some(client_token),
+        }
     }
 
     pub async fn bootstrap(instance: String) -> Result<String, crate::Error> {
@@ -55,7 +64,7 @@ impl FediClient {
         Ok(token)
     }
 
-    pub async fn post_to_fedi(&self, client: reqwest::Client) -> Result<(), crate::Error> {
+    pub async fn post_to_fedi(&self) -> Result<(), crate::Error> {
         let date = Utc::now()
             .date_naive()
             .pred_opt()
@@ -64,7 +73,7 @@ impl FediClient {
             .to_string();
 
         let fetch_args = FetchArgs {
-            client: &client,
+            client: &self.api_client,
             date: &date,
             output_format: OutputFormat::Markdown,
             no_links: false,
@@ -74,16 +83,26 @@ impl FediClient {
             .await
             .map_err(|e| format!("Failed to fetch PRs: {e}"))?;
 
-        self.client
-            .post_status(
-                output,
-                Some(&PostStatusInputOptions {
-                    visibility: Some(StatusVisibility::Public),
-                    language: Some("en".to_string()),
-                    ..Default::default()
-                }),
-            )
-            .await?;
+        self.post_status(output).await?;
+
+        Ok(())
+    }
+
+    async fn post_status(&self, status: String) -> Result<(), crate::Error> {
+        let url_str = format!("{}/api/v1/statuses", self.instance);
+        let url = Url::parse(&url_str)?;
+        let req = self
+            .api_client
+            .post(url)
+            .bearer_auth(self.access_token.as_ref().unwrap());
+
+        let params = multipart::Form::new()
+            .text("status", status)
+            .text("visibility", "public")
+            .text("language", "en")
+            .text("content_type", "text/markdown");
+
+        req.multipart(params).send().await?;
 
         Ok(())
     }
