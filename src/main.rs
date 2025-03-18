@@ -33,7 +33,7 @@ pub enum Commands {
     /// fetch info from nixpkgs prs
     Fetch {
         /// output format for pr info
-        #[arg(long, default_value = "markdown")]
+        #[arg(short, long, default_value = "markdown")]
         output_format: String,
 
         /// don't include links in pr list
@@ -49,11 +49,11 @@ pub enum Commands {
     #[cfg(feature = "post-bsky")]
     Bsky {
         /// user email
-        #[arg(long)]
+        #[arg(short, long)]
         email: Option<String>,
 
         /// user password
-        #[arg(long)]
+        #[arg(short, long)]
         password: Option<String>,
     },
 
@@ -61,18 +61,18 @@ pub enum Commands {
     #[cfg(feature = "post-fedi")]
     Fedi {
         /// url to fedi instance (e.g., <https://mastodon.social>), falls back to `$FEDI_INSTANCE`
-        #[arg(long)]
+        #[arg(short, long)]
         instance: Option<String>,
 
         /// access token (returned after initial login), falls back to `$FEDI_TOKEN`
-        #[arg(long)]
+        #[arg(short, long)]
         token: Option<String>,
     },
 
     #[cfg(feature = "post-fedi")]
     /// Create the fedi client token
     FediBootstrap {
-        #[arg(long)]
+        #[arg(short, long)]
         /// The instance to generate the token for
         instance: Option<String>,
     },
