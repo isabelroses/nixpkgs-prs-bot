@@ -75,7 +75,7 @@ impl BskyClient {
                 data: ReplyRefData {
                     parent: Object {
                         data: strong_ref::MainData {
-                            cid: last_cid.clone(),
+                            cid: last_cid,
                             uri: last_uri.clone(),
                         },
                         extra_data: Ipld::Null,
