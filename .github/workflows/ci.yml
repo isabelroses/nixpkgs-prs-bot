@@ -10,6 +10,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   check:
     name: Check
@@ -18,12 +20,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo registry and build
-        uses: Swatinem/rust-cache@v2
 
       - name: Run Clippy
         run: cargo clippy --all-targets -- -D warnings
@@ -40,12 +41,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
 
       - name: Publish nixpkgs-prs
         run: cargo publish --allow-dirty
@@ -64,61 +64,85 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Generate CHANGELOG
         uses: orhun/git-cliff-action@v4
         id: git-cliff
         with:
           args: -vv --latest --strip header
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
 
-  release:
-    name: Release
-    needs: [check, publish, generate-changelog]
+  build:
+    name: Build
+    needs: check
 
     runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+      id-token: write
 
     strategy:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            ext: ""
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-24.04-arm
-            ext: ""
           - target: x86_64-apple-darwin
             os: macos-latest
-            ext: ""
           - target: aarch64-apple-darwin
             os: macos-latest
-            ext: ""
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            ext: ".exe"
           - target: aarch64-pc-windows-msvc
             os: windows-latest
-            ext: ".exe"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Cache cargo registry and build
-        uses: Swatinem/rust-cache@v2
-
       - name: Build nixpkgs-prs
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Package build artifacts
         run: |
-          mkdir -p artifacts
-          cp target/${{ matrix.target }}/release/nixpkgs-prs${{ matrix.ext }} artifacts/nixpkgs-prs-${{ matrix.target }}${{ matrix.ext }}
+          cargo build --release --locked --target "$TARGET"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mv "target/$TARGET/release/nixpkgs-prs.exe" "nixpkgs-prs-$RELEASE.exe"
+          else
+            mv "target/$TARGET/release/nixpkgs-prs" "nixpkgs-prs-$RELEASE"
+          fi
+        env:
+          TARGET: ${{ matrix.target }}
+          RELEASE: ${{ github.ref_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ github.ref_name }}-${{ matrix.target }}
+          path: nixpkgs-prs*
+
+  release:
+    name: Release
+    needs: [check, generate-changelog, build]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Upload artifacts to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -126,4 +150,4 @@ jobs:
           body_path: ${{ needs.generate-changelog.outputs.changelog }}
           files: artifacts/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
