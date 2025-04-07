@@ -55,6 +55,7 @@ jobs:
   generate-changelog:
     name: Generate Changelog
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
 
     outputs:
       changelog: ${{ steps.git-cliff.outputs.changelog }}
