@@ -112,6 +112,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build nixpkgs-prs
+        shell: bash
         run: |
           cargo build --release --locked --target "$TARGET"
           if [ "$RUNNER_OS" = "Windows" ]; then
